@@ -1,10 +1,12 @@
 import discord
 from discord.ext import commands
 import os
+import threading
+from flask import Flask
 
+# Setup Discord bot
 intents = discord.Intents.default()
 intents.members = True
-
 bot = commands.Bot(command_prefix='/', intents=intents)
 
 @bot.event
@@ -35,4 +37,18 @@ async def vaccinate(ctx, member: discord.Member):
 async def outbreak_stats(ctx):
     await ctx.send("📊 Infected: 5\n💉 Vaccinated: 3")
 
-bot.run(os.getenv("DISCORD_TOKEN"))
+# Setup dummy Flask server for Render
+app = Flask('')
+
+@app.route('/')
+def home():
+    return "🧬 Infection at Sea Bot is running!"
+
+def run_web():
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host='0.0.0.0', port=port)
+
+# Start both Flask and bot
+if __name__ == "__main__":
+    threading.Thread(target=run_web).start()
+    bot.run(os.getenv("DISCORD_TOKEN"))
